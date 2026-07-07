@@ -92,6 +92,7 @@ _TEXT_GENERATION_MODELS = {
     "Cohere2ForCausalLM": ("commandr", "CohereForCausalLM"),
     "Cohere2MoeForCausalLM": ("cohere2_moe", "Cohere2MoeForCausalLM"),
     "CwmForCausalLM": ("llama", "LlamaForCausalLM"),
+    "Cosmos3ForConditionalGeneration": ("cosmos3", "Cosmos3ForConditionalGeneration"),
     "DbrxForCausalLM": ("dbrx", "DbrxForCausalLM"),
     "DeciLMForCausalLM": ("nemotron_nas", "DeciLMForCausalLM"),
     "DeepseekForCausalLM": ("deepseek_v2", "DeepseekForCausalLM"),
