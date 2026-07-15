@@ -1,0 +1,7 @@
+FROM vllm/vllm-openai:v0.25.0
+
+RUN ln -sf /usr/bin/python3 /usr/bin/python
+
+COPY .sandbox/ ./sandbox
+
+RUN cp -r sandbox/overlay/* /usr/local/lib/python3.12/dist-packages/vllm/
