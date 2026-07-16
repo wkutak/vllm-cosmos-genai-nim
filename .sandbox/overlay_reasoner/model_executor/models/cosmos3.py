@@ -107,9 +107,18 @@ class Cosmos3ForConditionalGeneration(Qwen3VLForConditionalGeneration):
         rel = (hq.get("activation_scale_overlay") or {}).get("reasoning")
         if not rel:
             return None
+        # Point the source at the sidecar's own directory rather than the
+        # checkpoint root. _prepare_weights runs filter_duplicate_safetensors_files
+        # against `<model_or_path>/model.safetensors.index.json`; the top-level
+        # index does not register the overlay sidecar, so rooting here would filter
+        # it out ("Cannot find any model weights"). The reasoner/ subdir has no
+        # index file, so the filter is skipped and the sidecar loads. Tensor names
+        # inside the file are unchanged, so hf_to_vllm_mapper still applies.
+        overlay_dir = os.path.join(model, os.path.dirname(rel))
+        overlay_file = os.path.basename(rel)
         return DefaultModelLoader.Source(
-            model_or_path=model,
+            model_or_path=overlay_dir,
             revision=vllm_config.model_config.revision,
             prefix="",
-            allow_patterns_overrides=[rel],
+            allow_patterns_overrides=[overlay_file],
         )

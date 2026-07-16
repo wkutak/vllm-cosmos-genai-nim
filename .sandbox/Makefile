@@ -32,6 +32,13 @@ build:
 		$(PROJECT_ROOT)
 	@echo Image $(IMAGE_NAME) built.
 
+build-reasoner:
+	DOCKER_BUILDKIT=1 docker build \
+		-t $(IMAGE_NAME)-reasoner:$(IMAGE_VERSION) \
+		-f Dockerfile.local.reasoner \
+		$(PROJECT_ROOT)
+	@echo Image $(IMAGE_NAME) built.
+
 run:	
 	docker run -it --rm \
 		--name $(IMAGE_NAME)-serve \
@@ -47,6 +54,30 @@ run:
 		$(MOUNTS) \
 		--entrypoint bash \
 		$(IMAGE_NAME):$(IMAGE_VERSION)
+
+run-reasoner:	
+	docker run -it --rm \
+		--name $(IMAGE_NAME)-serve \
+		$(GPU_FLAG) \
+		--ipc host \
+		--ulimit memlock=-1 \
+		--ulimit stack=67108864 \
+		-p $(HOST_PORT):8000 \
+		-e HF_TOKEN \
+		-e HUGGING_FACE_HUB_TOKEN="$(HF_TOKEN)" \
+		-u 0:0 \
+		-e NGC_API_KEY=$(NGC_API_KEY) \
+		$(MOUNTS) \
+		--entrypoint bash \
+		$(IMAGE_NAME)-reasoner:$(IMAGE_VERSION)
+	
+upload:
+	docker tag $(IMAGE_NAME):$(IMAGE_VERSION) nvcr.io/nvidian/vllm-cosmos3:v0.25.0_git_vllm_$(IMAGE_VERSION) && \
+	docker push nvcr.io/nvidian/vllm-cosmos3:v0.25.0_git_vllm_$(IMAGE_VERSION)
+
+upload-reasoner:
+	docker tag $(IMAGE_NAME)-reasoner:$(IMAGE_VERSION) nvcr.io/nvidian/vllm-cosmos3:v0.25.0_reasoner-overlay_git_vllm_$(IMAGE_VERSION) && \
+	docker push nvcr.io/nvidian/vllm-cosmos3:v0.25.0_reasoner-overlay_git_vllm_$(IMAGE_VERSION)
 
 
 # Run the full 3-checkpoint benchmark and emit cosmos3_bench_out/cosmos3_perf.csv
@@ -76,7 +107,7 @@ infer-cosmos3:
 build-cuda129:
 	DOCKER_BUILDKIT=1 docker build \
 		-t $(IMAGE_NAME_CUDA129):$(IMAGE_VERSION) \
-		-f Dockerfile.local \
+		-f docker/Dockerfile.cuda129.local \
 		$(PROJECT_ROOT)
 	@echo Image $(IMAGE_NAME) built.
 
@@ -87,10 +118,42 @@ upload-cuda129:
 build-cuda129-reasoner:
 	DOCKER_BUILDKIT=1 docker build \
 		-t $(IMAGE_NAME_CUDA129)-reasoner:$(IMAGE_VERSION) \
-		-f Dockerfile.local \
+		-f docker/Dockerfile.cuda129.local.reasoner \
 		$(PROJECT_ROOT)
 	@echo Image $(IMAGE_NAME) built.
 
-upload-cuda129:
-	docker tag $(IMAGE_NAME_CUDA129):$(IMAGE_VERSION) nvcr.io/nvidian/vllm-cosmos3:v0.25.0_reasoner-overlay_cu129_git_vllm_$(IMAGE_VERSION) && \
+upload-cuda129-reasoner:
+	docker tag $(IMAGE_NAME_CUDA129)-reasoner:$(IMAGE_VERSION) nvcr.io/nvidian/vllm-cosmos3:v0.25.0_reasoner-overlay_cu129_git_vllm_$(IMAGE_VERSION) && \
 	docker push nvcr.io/nvidian/vllm-cosmos3:v0.25.0_reasoner-overlay_cu129_git_vllm_$(IMAGE_VERSION)
+
+run-nvcr-cuda129:	
+	docker run -it --rm \
+		--name $(IMAGE_NAME)-serve \
+		$(GPU_FLAG) \
+		--ipc host \
+		--ulimit memlock=-1 \
+		--ulimit stack=67108864 \
+		-p $(HOST_PORT):8000 \
+		-e HF_TOKEN \
+		-e HUGGING_FACE_HUB_TOKEN="$(HF_TOKEN)" \
+		-u 0:0 \
+		-e NGC_API_KEY=$(NGC_API_KEY) \
+		$(MOUNTS) \
+		--entrypoint bash \
+		nvcr.io/nvidian/vllm-cosmos3:v0.25.0_cu129_git_vllm_$(IMAGE_VERSION)
+
+run-nvcr-cuda129-reasoner:	
+	docker run -it --rm \
+		--name $(IMAGE_NAME)-serve \
+		$(GPU_FLAG) \
+		--ipc host \
+		--ulimit memlock=-1 \
+		--ulimit stack=67108864 \
+		-p $(HOST_PORT):8000 \
+		-e HF_TOKEN \
+		-e HUGGING_FACE_HUB_TOKEN="$(HF_TOKEN)" \
+		-u 0:0 \
+		-e NGC_API_KEY=$(NGC_API_KEY) \
+		$(MOUNTS) \
+		--entrypoint bash \
+		nvcr.io/nvidian/vllm-cosmos3:v0.25.0_reasoner-overlay_cu129_git_vllm_$(IMAGE_VERSION)

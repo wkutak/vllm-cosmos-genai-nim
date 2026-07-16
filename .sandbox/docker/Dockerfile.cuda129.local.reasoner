@@ -3,6 +3,18 @@ FROM ${BASE_IMAGE}
 
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
+# NGC CLI (for pulling/pushing checkpoints to the NGC registry). See
+# .sandbox/../upload_ngc.sh for the runtime equivalent.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends wget unzip \
+    && wget -q https://ngc.nvidia.com/downloads/ngccli_linux.zip -O /tmp/ngccli_linux.zip \
+    && unzip -q /tmp/ngccli_linux.zip -d /opt \
+    && rm /tmp/ngccli_linux.zip \
+    && chmod +x /opt/ngc-cli/ngc \
+    && ln -sf /opt/ngc-cli/ngc /usr/local/bin/ngc \
+    && rm -rf /var/lib/apt/lists/*
+ENV PATH="/opt/ngc-cli:${PATH}"
+
 COPY .sandbox/ ./sandbox
 
 RUN cp -r sandbox/overlay_reasoner/* /usr/local/lib/python3.12/dist-packages/vllm/

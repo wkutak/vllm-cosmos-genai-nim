@@ -1,5 +1,4 @@
-ARG BASE_IMAGE=vllm/vllm-openai:v0.25.0-cu129-ubuntu2404
-FROM ${BASE_IMAGE}
+FROM vllm/vllm-openai:v0.25.0
 
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
@@ -17,4 +16,4 @@ ENV PATH="/opt/ngc-cli:${PATH}"
 
 COPY .sandbox/ ./sandbox
 
-RUN cp -r sandbox/overlay/* /usr/local/lib/python3.12/dist-packages/vllm/
+RUN cp -r sandbox/overlay_reasoner/* /usr/local/lib/python3.12/dist-packages/vllm/
